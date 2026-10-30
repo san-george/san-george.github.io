@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>موقع البيانات</title>
+<title>San George</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--tx:#161a22;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--bad:#dc2626}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mut:#8b93a3;--bd:#262b37;--ac:#4f8cff}}
@@ -31,10 +31,14 @@ input[type=checkbox]{flex:none;min-width:0}
 th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mut);font-weight:600;font-size:13px}
 .empty{padding:24px;text-align:center;color:var(--mut)}
 #admin{border:2px solid var(--ac)}
+.credit{display:flex;justify-content:center;align-items:center;gap:12px;margin:0 0 20px;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--mut);direction:ltr}
+.credit::before,.credit::after{content:'';width:32px;height:1px;background:var(--bd)}
+.credit b{color:var(--tx);font-weight:700;letter-spacing:.32em}
 </style>
 </head>
 <body>
 <div class="wrap">
+<div class="credit">created by <b>KRISTIAN</b></div>
 <header>
   <div><h1 id="ttl"></h1><div class="sub" id="sub"></div></div>
   <div class="row" id="hb"></div>
@@ -48,7 +52,7 @@ var S={title:'موقع البيانات',subtitle:'آخر البيانات ال�
 try{var r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 var app=document.getElementById('app');
 var q='',editId=null,delId=null,open=false,authOpen=false,logged=false;
-try{logged=sessionStorage.getItem('ok')==='1'}catch(e){}
+try{logged=!!(S.auth&&S.auth.tok&&localStorage.getItem('ok')===S.auth.tok)}catch(e){}
 async function hsh(p,salt){var d=salt+':'+p;try{var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(d));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}catch(e){var h=5381;for(var i=0;i<d.length;i++)h=((h<<5)+h+d.charCodeAt(i))|0;return 'x'+h}}
 function authForm(){
   var first=!S.auth;
@@ -98,7 +102,7 @@ function bind(){
   var $a=function(i){return document.getElementById(i)};
   if($a('lg'))$a('lg').onclick=function(){authOpen=true;render()};
   if($a('tog'))$a('tog').onclick=function(){open=!open;render()};
-  if($a('out'))$a('out').onclick=function(){logged=false;open=false;try{sessionStorage.removeItem('ok')}catch(e){}render()};
+  if($a('out'))$a('out').onclick=function(){logged=false;open=false;try{localStorage.removeItem('ok')}catch(e){}if(S.auth){delete S.auth.tok;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}render()};
   if($a('acx'))$a('acx').onclick=function(){authOpen=false;render()};
   if($a('ago'))$a('ago').onclick=async function(){
     var u=$a('au').value.trim(),p=$a('ap').value,er=$a('aer');
@@ -109,7 +113,7 @@ function bind(){
       var salt=String(Math.random()).slice(2)+Date.now();
       S.auth={u:u.toLowerCase(),salt:salt,h:await hsh(p,salt)};
     }else if(u.toLowerCase()!==S.auth.u||await hsh(p,S.auth.salt)!==S.auth.h){er.textContent='اسم المستخدم أو كلمة المرور غلط.';return}
-    logged=true;authOpen=false;open=true;try{sessionStorage.setItem('ok','1')}catch(e){}save();
+    logged=true;authOpen=false;open=true;var tk=String(Math.random()).slice(2)+Date.now()+String(Math.random()).slice(2);S.auth.tok=tk;try{localStorage.setItem('ok',tk)}catch(e){}save();
   };
   var qi=document.getElementById('q');
   if(qi)qi.oninput=function(){q=qi.value;var p=qi.selectionStart;render();var n=document.getElementById('q');n.focus();n.setSelectionRange(p,p)};
@@ -124,13 +128,13 @@ function bind(){
   if($('cx'))$('cx').onclick=function(){editId=null;render()};
   app.querySelectorAll('[data-e]').forEach(function(b){b.onclick=function(){editId=b.dataset.e;render()}});
   app.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){if(delId===b.dataset.d){S.items=S.items.filter(function(i){return i.id!==delId});delId=null;save()}else{delId=b.dataset.d;render()}}});
-  $('ex').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(Object.assign({},S,{auth:undefined}),null,2)],{type:'application/json'}));a.download='site-data.json';a.click()};
+  $('ex').onclick=function(){claude.use('downloads').then(function(d){if(!d){alert('التصدير مش متاح هنا.');return}return d.save({filename:'site-data.json',data:JSON.stringify(Object.assign({},S,{auth:undefined}),null,2)})}).catch(function(){})};
   $('im').onclick=function(){$('fi').click()};
   $('fi').onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!Array.isArray(d.items))throw 0;S=Object.assign({title:'',subtitle:'',items:[],f:{}},d,{auth:S.auth});save()}catch(e){alert('الملف مش صالح.')}};rd.readAsText(f)};
 }
 function render(){
   document.getElementById('ttl').textContent=S.title;document.getElementById('sub').textContent=S.subtitle;document.title=S.title;
-  document.getElementById('hb').innerHTML=logged?'<button class="g" id="tog">'+(open?'إخفاء اللوحة':'لوحة التحكم')+'</button><button class="g" id="out">خروج</button>':'<button class="g" id="lg">'+(S.auth?'تسجيل دخول':'إنشاء حساب المالك')+'</button>';
+  document.getElementById('hb').innerHTML=logged?'<button class="g" id="tog">'+(open?'إخفاء اللوحة':'لوحة التحكم')+'</button><button class="g" id="out">تسجيل خروج</button>':'<button class="g" id="lg">'+(S.auth?'تسجيل دخول':'إنشاء حساب المالك')+'</button>';
   app.innerHTML=(authOpen&&!logged?authForm():'')+(logged&&open?admin():'')+pub();bind();
 }
 render();
