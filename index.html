@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark" style="color-scheme: dark;"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>موقع</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#161a22;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--bad:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mut:#8b93a3;--bd:#262b37;--ac:#4f8cff}}
+:root[data-theme="dark"]{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mut:#8b93a3;--bd:#262b37;--ac:#4f8cff}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Cairo',system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:28px;font-weight:700;margin:0;background:linear-gradient(90deg,#ff0040,#ff9500,#ffee00,#00e676,#00b0ff,#7c4dff,#ff0040);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:rgb 6s linear infinite}@keyframes rgb{to{background-position:-300% 0}}@media (prefers-reduced-motion:reduce){h1{animation:none}}h2{font-size:16px;margin:0 0 12px}.sub{color:var(--mut);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:0}
+.sec{margin-bottom:16px}.val{font-size:22px;font-weight:700;color:var(--ac)}
+.tag{display:inline-block;font-size:12px;padding:1px 10px;border-radius:99px;background:var(--bd);color:var(--mut)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,input,textarea{font:inherit}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button.d{background:transparent;color:var(--bad);border:1px solid var(--bd)}
+button.s{padding:3px 10px;font-size:13px}
+input,textarea{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;flex:1;min-width:150px}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mut);font-weight:600;font-size:13px}
+.empty{padding:24px;text-align:center;color:var(--mut)}.hide{display:none!important}
+#admin{border:2px solid var(--ac)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1 id="ttl">موقع</h1><div class="sub" id="sub">آخرااااا</div></div>
+  <div class="row"><button class="g" id="tog">إخفاء اللوحة</button></div>
+</header>
+<div id="app"></div>
+</div>
+<script type="application/json" id="state">{"title":"لا يوجد","subtitle":"لا يوجد","items":[]}</script>
+<script>
+(function(){
+var S=JSON.parse(document.getElementById('state').textContent);
+var app=document.getElementById('app'),tog=document.getElementById('tog');
+var owner=false,db=null,user=null,art=null,logs=[],names={},q='',editId=null,delId=null,adminOpen=location.hash==='#admin';
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML}
+function fmt(t){try{return new Date(t).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
+function device(){var u=navigator.userAgent,os='غير معروف',br='غير معروف';
+ if(/Windows/.test(u))os='Windows';else if(/Android/.test(u))os='Android';else if(/iPhone|iPad/.test(u))os='iOS';else if(/Mac/.test(u))os='macOS';else if(/Linux/.test(u))os='Linux';
+ if(/Edg\//.test(u))br='Edge';else if(/Chrome\//.test(u))br='Chrome';else if(/Firefox\//.test(u))br='Firefox';else if(/Safari\//.test(u))br='Safari';
+ return {os:os,browser:br,screen:screen.width+'×'+screen.height,tz:(Intl.DateTimeFormat().resolvedOptions().timeZone)||''}}
+async function save(){
+  if(!art){alert('الحفظ مش متاح هنا.');return}
+  var c=document.documentElement.cloneNode(true);
+  c.querySelector('#app').innerHTML='';
+  c.querySelector('#state').textContent=JSON.stringify(S).replace(/</g,'\\u003c');
+  try{await art.publish('<!DOCTYPE html>\n'+c.outerHTML)}catch(e){if(e&&e.code!=='conflict')alert('تعذّر الحفظ، جرّب تاني.')}
+}
+var DF={name:'الاسم',value:'القيمة',cat:'التصنيف',note:'ملاحظة'};
+function L(k){return (S.f&&S.f[k]&&S.f[k].l)||DF[k]}
+function ON(k){return k==='name'||!(S.f&&S.f[k]&&S.f[k].off)}
+function pub(){
+  var f=S.items.filter(function(i){return (i.name+' '+(i.cat||'')+' '+(i.note||'')).indexOf(q)>-1});
+  var h='<div class="sec"><input id="q" placeholder="بحث…" value="'+esc(q)+'"></div>';
+  if(!f.length)return h+'<div class="card empty">مفيش بيانات لسه</div>';
+  h+='<div class="grid">';
+  f.forEach(function(i){h+='<div class="card"><div class="row" style="justify-content:space-between"><b>'+esc(i.name)+'</b>'+(i.cat&&ON('cat')?'<span class="tag">'+esc(i.cat)+'</span>':'')+'</div>'
+   +(i.value&&ON('value')?'<div class="sub" style="font-size:12px">'+esc(L('value'))+'</div><div class="val">'+esc(i.value)+'</div>':'')+(i.note&&ON('note')?'<div class="sub">'+esc(i.note)+'</div>':'')+'<div class="sub" style="font-size:12px;margin-top:6px">'+esc(fmt(i.t))+'</div></div>'});
+  return h+'</div>';
+}
+function admin(){
+  var e=S.items.filter(function(i){return i.id===editId})[0]||{};
+  var h='<div class="card sec" id="admin"><h2>لوحة التحكم</h2>'
+  +'<div class="row sec"><input id="st" placeholder="عنوان الموقع" value="'+esc(S.title)+'"><input id="ss" placeholder="وصف قصير" value="'+esc(S.subtitle)+'"><button id="sv">حفظ العنوان</button></div>'
+  +'<h2>الحقول (غيّر الاسم أو شيل الحقل)</h2>'+['name','value','cat','note'].map(function(k){return '<div class="row" style="margin-bottom:8px"><input id="lb_'+k+'" value="'+esc(L(k))+'">'+(k==='name'?'<span class="sub">أساسي</span>':'<label class="row sub" style="flex:none"><input type="checkbox" id="on_'+k+'" '+(ON(k)?'checked':'')+' style="flex:none;min-width:0"> ظاهر</label>')+'</div>'}).join('')+'<div class="row sec"><button id="sf">حفظ الحقول</button></div>'
+  +'<h2>'+(editId?'تعديل بيان':'إضافة بيان')+'</h2><div class="row sec"><input id="fn" placeholder="'+esc(L('name'))+' *" value="'+esc(e.name)+'">'+(ON('value')?'<input id="fv" placeholder="'+esc(L('value'))+'" value="'+esc(e.value)+'">':'')+(ON('cat')?'<input id="fc" placeholder="'+esc(L('cat'))+'" value="'+esc(e.cat)+'">':'')+'</div>'
+  +(ON('note')?'<div class="row sec"><textarea id="fo" rows="2" placeholder="'+esc(L('note'))+'">'+esc(e.note)+'</textarea></div>':'')
+  +'<div class="row sec"><button id="ad">'+(editId?'حفظ التعديل':'إضافة')+'</button>'+(editId?'<button class="g" id="cx">إلغاء</button>':'')+'<button class="g" id="pm">إدارة من يقدر يدخل</button></div>'
+  +'<h2>بحث عن الأشخاص</h2><div class="row"><input id="ps" placeholder="ابحث بالاسم أو اليوزر نيم…"></div><div id="pr" class="sub sec" style="margin-top:8px"></div>';
+  if(S.items.length){h+='<div class="scroll sec"><table><thead><tr><th>'+esc(L('name'))+'</th>'+(ON('value')?'<th>'+esc(L('value'))+'</th>':'')+(ON('cat')?'<th>'+esc(L('cat'))+'</th>':'')+'<th></th></tr></thead><tbody>';
+   S.items.forEach(function(i){h+='<tr><td>'+esc(i.name)+'</td>'+(ON('value')?'<td>'+esc(i.value)+'</td>':'')+(ON('cat')?'<td>'+esc(i.cat)+'</td>':'')+'<td><button class="g s" data-e="'+i.id+'">تعديل</button> <button class="d s" data-d="'+i.id+'">'+(delId===i.id?'تأكيد الحذف؟':'حذف')+'</button></td></tr>'});h+='</tbody></table></div>'}
+  h+='<h2>سجل الدخول</h2>';
+  if(!db)h+='<div class="sub">السجل بيظهر لما تفتح الصفحة وإنت مسجل دخول بحساب Claude.</div>';
+  else if(!logs.length)h+='<div class="sub">مفيش سجلات لسه.</div>';
+  else{h+='<div class="scroll"><table><thead><tr><th>آخر دخول</th><th>الشخص</th><th>مرات</th><th>النظام</th><th>المتصفح</th><th>الشاشة</th><th>المنطقة الزمنية</th></tr></thead><tbody>';
+   logs.forEach(function(r){h+='<tr><td>'+esc(fmt(r.t))+'</td><td>'+esc(names[r.uid]||'مستخدم')+'</td><td>'+esc(r.n)+'</td><td>'+esc(r.os)+'</td><td>'+esc(r.browser)+'</td><td>'+esc(r.screen)+'</td><td>'+esc(r.tz)+'</td></tr>'});h+='</tbody></table></div>'}
+  return h+'</div>';
+}
+function bind(){
+  var qi=document.getElementById('q');
+  if(qi)qi.oninput=function(){q=qi.value;var p=qi.selectionStart;render();var n=document.getElementById('q');n.focus();n.setSelectionRange(p,p)};
+  if(!document.getElementById('admin'))return;
+  var $=function(i){return document.getElementById(i)};
+  $('sf').onclick=function(){S.f={};['name','value','cat','note'].forEach(function(k){var l=$('lb_'+k).value.trim()||DF[k],c=$('on_'+k);S.f[k]={l:l,off:c?!c.checked:false}});save()};
+  $('sv').onclick=function(){S.title=$('st').value.trim()||S.title;S.subtitle=$('ss').value.trim();save()};
+  $('ad').onclick=function(){var n=$('fn').value.trim();if(!n)return $('fn').focus();
+    var o={name:n,t:Date.now()};if($('fv'))o.value=$('fv').value.trim();if($('fc'))o.cat=$('fc').value.trim();if($('fo'))o.note=$('fo').value.trim();
+    if(editId){S.items=S.items.map(function(i){return i.id===editId?Object.assign(i,o):i})}else{o.id='i'+Date.now();S.items.unshift(o)}
+    save()};
+  if($('cx'))$('cx').onclick=function(){editId=null;render()};
+  $('pm').onclick=function(){claude.use('permissions').then(function(p){return p&&p.manage?p.manage():0}).catch(function(){alert('افتح قائمة Permissions من أعلى الصفحة')})};
+  var ps=$('ps'),pt=null;
+  ps.oninput=function(){clearTimeout(pt);pt=setTimeout(async function(){
+    var r=$('pr');if(!r)return;if(!user){r.textContent='البحث مش متاح هنا.';return}
+    var hits=[];try{hits=await user.search(ps.value.trim())}catch(e){}
+    if(!hits.length){r.textContent='مفيش نتايج.';return}
+    r.innerHTML=hits.slice(0,10).map(function(p){var l=logs.filter(function(x){return x.uid===p.id})[0];
+      return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--bd)"><b style="color:var(--tx)">'+esc(p.name||'مستخدم')+'</b>'+(p.guest?'<span class="tag">ضيف</span>':'')+'<span>'+(l?'آخر دخول: '+esc(fmt(l.t)):'لسه ما دخلش')+'</span></div>'}).join('')
+      +'<div style="margin-top:8px">لإضافة شخص جديد استخدم زر إدارة من يقدر يدخل وابحث عنه هناك.</div>';
+  },300)};
+  app.querySelectorAll('[data-e]').forEach(function(b){b.onclick=function(){editId=b.dataset.e;render()}});
+  app.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){if(delId===b.dataset.d){S.items=S.items.filter(function(i){return i.id!==delId});delId=null;save()}else{delId=b.dataset.d;render()}}});
+}
+function render(){
+  document.getElementById('ttl').textContent=S.title;document.getElementById('sub').textContent=S.subtitle;document.title=S.title;
+  tog.textContent=adminOpen?'إخفاء اللوحة':'لوحة التحكم';
+  app.innerHTML=(owner&&adminOpen?admin():'')+pub();bind();
+}
+tog.onclick=function(){adminOpen=!adminOpen;location.hash=adminOpen?'admin':'';render()};
+render();
+(async function(){
+  try{user=await claude.use('user');art=await claude.use('artifact');db=await claude.use('db')}catch(e){}
+  if(!user)return;
+  owner=await user.isOwner();
+  if(owner)tog.classList.remove('hide');
+  var id=null;try{id=await user.id()}catch(e){}
+  if(db&&id){try{if(!sessionStorage.getItem('lg')){sessionStorage.setItem('lg','1');var d=device(),ref=db.collection('visits').doc(id),old=await ref.get(),od=old.exists?old.data():{};
+    await ref.set({uid:id,t:Date.now(),n:(od.n||0)+1,os:d.os,browser:d.browser,screen:d.screen,tz:d.tz})}}catch(e){}}
+  if(owner&&db){db.collection('visits').orderBy('t','desc').limit(300).onSnapshot(async function(s){
+    logs=s.docs.map(function(x){return x.data()});
+    var ids=logs.map(function(r){return r.uid});
+    try{var ps=await user.profiles(ids);ids.forEach(function(i){names[i]=(ps[i]&&ps[i].name)||'مستخدم'})}catch(e){}
+    if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))render();
+  },function(){})}
+  else render();
+})();
+})();
+</script>
+
+
+</body></html>
