@@ -35,6 +35,12 @@ select{flex:none;min-width:0}input[type=checkbox]{flex:none;min-width:0}
 th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mut);font-weight:600;font-size:13px}
 .empty{padding:24px;text-align:center;color:var(--mut)}
 #admin{border:2px solid var(--ac)}
+.grid.c{grid-template-columns:repeat(var(--n),1fr)}
+.lst{display:flex;flex-direction:column;gap:10px}
+.lst .card{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.gh{font-size:15px;font-weight:700;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.gh span{font-weight:400;color:var(--mut);font-size:13px}
+@media (max-width:640px){.grid.c{grid-template-columns:repeat(min(var(--n),2),1fr)}}
 </style>
 </head>
 <body>
@@ -144,23 +150,44 @@ function authForm(){
   <div class="row"><button id="ago">${reg?'إنشاء الحساب':'دخول'}</button><button class="g" id="acx">إلغاء</button><button class="g" id="asw">${reg?'عندي حساب':'إنشاء حساب جديد'}</button></div>
   <div class="sub" id="aer" style="color:var(--bad);margin-top:8px"></div></div>`;
 }
+const V=k=>{const d={view:'cards',cols:0,sort:'new',group:false};return (cfg.v&&cfg.v[k]!==undefined)?cfg.v[k]:d[k]};
+function itemCard(i){return `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(i.name)}</b>${i.cat&&ON('cat')?`<span class="tag">${esc(i.cat)}</span>`:''}</div>
+   ${i.value&&ON('value')?`<div class="sub" style="font-size:12px">${esc(L('value'))}</div><div class="val">${esc(i.value)}</div>`:''}
+   ${i.note&&ON('note')?`<div class="sub">${esc(i.note)}</div>`:''}</div>`}
+function itemRow(i){return `<div class="card"><div><b>${esc(i.name)}</b>${i.note&&ON('note')?`<div class="sub">${esc(i.note)}</div>`:''}</div>
+   <div class="row">${i.cat&&ON('cat')?`<span class="tag">${esc(i.cat)}</span>`:''}${i.value&&ON('value')?`<span class="val" style="font-size:18px">${esc(i.value)}</span>`:''}</div></div>`}
+function block(list){
+  const v=V('view');
+  if(v==='list')return `<div class="lst">${list.map(itemRow).join('')}</div>`;
+  if(v==='table')return `<div class="card scroll" style="padding:4px 8px"><table><thead><tr><th>${esc(L('name'))}</th>${ON('value')?`<th>${esc(L('value'))}</th>`:''}${ON('cat')?`<th>${esc(L('cat'))}</th>`:''}${ON('note')?`<th>${esc(L('note'))}</th>`:''}</tr></thead><tbody>${list.map(i=>`<tr><td>${esc(i.name)}</td>${ON('value')?`<td>${esc(i.value)}</td>`:''}${ON('cat')?`<td>${esc(i.cat)}</td>`:''}${ON('note')?`<td style="white-space:normal">${esc(i.note)}</td>`:''}</tr>`).join('')}</tbody></table></div>`;
+  const n=+V('cols')||0;
+  return n?`<div class="grid c" style="--n:${n}">${list.map(itemCard).join('')}</div>`:`<div class="grid">${list.map(itemCard).join('')}</div>`;
+}
 function pub(){
-  const f=items.filter(i=>(i.name+' '+(i.cat||'')+' '+(i.note||'')).indexOf(q)>-1);
+  let f=items.filter(i=>(i.name+' '+(i.cat||'')+' '+(i.note||'')).indexOf(q)>-1);
+  const so=V('sort');
+  f=f.slice().sort((a,b)=>so==='old'?(a.t||0)-(b.t||0):so==='name'?String(a.name).localeCompare(String(b.name),'ar'):(b.t||0)-(a.t||0));
   let h=`<div class="sec"><input id="q" placeholder="بحث…" value="${esc(q)}" style="width:100%"></div>`;
   if(!f.length)return h+'<div class="card empty">مفيش بيانات لسه</div>';
-  h+='<div class="grid">';
-  f.forEach(i=>{h+=`<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(i.name)}</b>${i.cat&&ON('cat')?`<span class="tag">${esc(i.cat)}</span>`:''}</div>
-   ${i.value&&ON('value')?`<div class="sub" style="font-size:12px">${esc(L('value'))}</div><div class="val">${esc(i.value)}</div>`:''}
-   ${i.note&&ON('note')?`<div class="sub">${esc(i.note)}</div>`:''}
-   <div class="sub" style="font-size:12px;margin-top:6px">${esc(fmt(i.t))}</div></div>`});
-  return h+'</div>';
+  if(V('group')&&ON('cat')){
+    const g={},ord=[];f.forEach(i=>{const k=i.cat||'بدون تصنيف';if(!g[k]){g[k]=[];ord.push(k)}g[k].push(i)});
+    ord.sort((a,b)=>a==='بدون تصنيف'?1:b==='بدون تصنيف'?-1:a.localeCompare(b,'ar'));
+    return h+ord.map(k=>`<div class="gh">${esc(k)}<span>${g[k].length}</span></div>${block(g[k])}`).join('');
+  }
+  return h+block(f);
 }
 function admin(){
   const own=isOwner(),e=items.find(i=>i.id===editId)||{};
   let h='<div class="card sec" id="admin"><h2>لوحة التحكم</h2>';
   if(own)h+=`<div class="row sec"><input id="st" placeholder="عنوان الموقع" value="${esc(cfg.title)}"><input id="ss" placeholder="وصف قصير" value="${esc(cfg.subtitle)}"><button id="sv">حفظ العنوان</button></div>
   <h2>الحقول (غيّر الاسم أو شيل الحقل)</h2>${['name','value','cat','note'].map(k=>`<div class="row" style="margin-bottom:8px"><input id="lb_${k}" value="${esc(L(k))}">${k==='name'?'<span class="sub">أساسي</span>':`<label class="row sub" style="flex:none"><input type="checkbox" id="on_${k}" ${ON(k)?'checked':''}> ظاهر</label>`}</div>`).join('')}
-  <div class="row sec"><button id="sf">حفظ الحقول</button></div>`;
+  <div class="row sec"><button id="sf">حفظ الحقول</button></div>
+  <h2>تقسيمة العرض</h2><div class="row sec">
+  <label class="row sub">الشكل <select id="vv"><option value="cards"${V('view')==='cards'?' selected':''}>بطاقات</option><option value="list"${V('view')==='list'?' selected':''}>قائمة</option><option value="table"${V('view')==='table'?' selected':''}>جدول</option></select></label>
+  <label class="row sub">الأعمدة <select id="vc">${[[0,'تلقائي'],[1,'1'],[2,'2'],[3,'3'],[4,'4']].map(x=>`<option value="${x[0]}"${+V('cols')===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select></label>
+  <label class="row sub">الترتيب <select id="vs"><option value="new"${V('sort')==='new'?' selected':''}>الأحدث أولاً</option><option value="old"${V('sort')==='old'?' selected':''}>الأقدم أولاً</option><option value="name"${V('sort')==='name'?' selected':''}>بالاسم</option></select></label>
+  <label class="row sub"><input type="checkbox" id="vg" ${V('group')?'checked':''}> قسّم حسب التصنيف</label>
+  <button id="sl">حفظ التقسيمة</button></div>`;
   h+=`<h2>${editId?'تعديل بيان':'إضافة بيان'}</h2><div class="row sec"><input id="fn" placeholder="${esc(L('name'))} *" value="${esc(e.name)}">
   ${ON('value')?`<input id="fv" placeholder="${esc(L('value'))}" value="${esc(e.value)}">`:''}${ON('cat')?`<input id="fc" placeholder="${esc(L('cat'))}" value="${esc(e.cat)}">`:''}</div>
   ${ON('note')?`<div class="row sec"><textarea id="fo" rows="2" placeholder="${esc(L('note'))}">${esc(e.note)}</textarea></div>`:''}
@@ -197,6 +224,7 @@ function bind(){
   if($('sv')){
     $('sv').onclick=()=>setDoc(doc(db,'site','config'),{title:$('st').value.trim()||cfg.title,subtitle:$('ss').value.trim()},{merge:true}).catch(fail);
     $('sf').onclick=()=>{const f={};['name','value','cat','note'].forEach(k=>{const c=$('on_'+k);f[k]={l:$('lb_'+k).value.trim()||DF[k],off:c?!c.checked:false}});setDoc(doc(db,'site','config'),{f},{merge:true}).catch(fail)};
+    $('sl').onclick=()=>setDoc(doc(db,'site','config'),{v:{view:$('vv').value,cols:+$('vc').value,sort:$('vs').value,group:$('vg').checked}},{merge:true}).catch(fail);
     $('us').oninput=()=>{clearTimeout(ut);ut=setTimeout(drawUsers,250)};drawUsers();
   }
   $('ad').onclick=async()=>{const n=$('fn').value.trim();if(!n)return $('fn').focus();
