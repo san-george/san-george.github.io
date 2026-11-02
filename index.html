@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>موقع البيانات</title>
+<title>San George</title>
+
+<link rel="icon" type="image/png" href="sangeorge.png">
+
+
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--tx:#161a22;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--bad:#dc2626}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mut:#8b93a3;--bd:#262b37;--ac:#4f8cff}}
@@ -153,13 +157,14 @@ function authForm(){
 const V=k=>{const d={view:'cards',cols:0,sort:'new',group:false};return (cfg.v&&cfg.v[k]!==undefined)?cfg.v[k]:d[k]};
 function itemCard(i){return `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(i.name)}</b>${i.cat&&ON('cat')?`<span class="tag">${esc(i.cat)}</span>`:''}</div>
    ${i.value&&ON('value')?`<div class="sub" style="font-size:12px">${esc(L('value'))}</div><div class="val">${esc(i.value)}</div>`:''}
-   ${i.note&&ON('note')?`<div class="sub">${esc(i.note)}</div>`:''}</div>`}
+   ${i.note&&ON('note')?`<div class="sub">${esc(i.note)}</div>`:''}
+   <div class="sub" style="font-size:12px;margin-top:6px">${esc(fmt(i.t))}</div></div>`}
 function itemRow(i){return `<div class="card"><div><b>${esc(i.name)}</b>${i.note&&ON('note')?`<div class="sub">${esc(i.note)}</div>`:''}</div>
-   <div class="row">${i.cat&&ON('cat')?`<span class="tag">${esc(i.cat)}</span>`:''}${i.value&&ON('value')?`<span class="val" style="font-size:18px">${esc(i.value)}</span>`:''}</div></div>`}
+   <div class="row">${i.cat&&ON('cat')?`<span class="tag">${esc(i.cat)}</span>`:''}${i.value&&ON('value')?`<span class="val" style="font-size:18px">${esc(i.value)}</span>`:''}<span class="sub" style="font-size:12px">${esc(fmt(i.t))}</span></div></div>`}
 function block(list){
   const v=V('view');
   if(v==='list')return `<div class="lst">${list.map(itemRow).join('')}</div>`;
-  if(v==='table')return `<div class="card scroll" style="padding:4px 8px"><table><thead><tr><th>${esc(L('name'))}</th>${ON('value')?`<th>${esc(L('value'))}</th>`:''}${ON('cat')?`<th>${esc(L('cat'))}</th>`:''}${ON('note')?`<th>${esc(L('note'))}</th>`:''}</tr></thead><tbody>${list.map(i=>`<tr><td>${esc(i.name)}</td>${ON('value')?`<td>${esc(i.value)}</td>`:''}${ON('cat')?`<td>${esc(i.cat)}</td>`:''}${ON('note')?`<td style="white-space:normal">${esc(i.note)}</td>`:''}</tr>`).join('')}</tbody></table></div>`;
+  if(v==='table')return `<div class="card scroll" style="padding:4px 8px"><table><thead><tr><th>${esc(L('name'))}</th>${ON('value')?`<th>${esc(L('value'))}</th>`:''}${ON('cat')?`<th>${esc(L('cat'))}</th>`:''}${ON('note')?`<th>${esc(L('note'))}</th>`:''}<th>التاريخ</th></tr></thead><tbody>${list.map(i=>`<tr><td>${esc(i.name)}</td>${ON('value')?`<td>${esc(i.value)}</td>`:''}${ON('cat')?`<td>${esc(i.cat)}</td>`:''}${ON('note')?`<td style="white-space:normal">${esc(i.note)}</td>`:''}<td>${esc(fmt(i.t))}</td></tr>`).join('')}</tbody></table></div>`;
   const n=+V('cols')||0;
   return n?`<div class="grid c" style="--n:${n}">${list.map(itemCard).join('')}</div>`:`<div class="grid">${list.map(itemCard).join('')}</div>`;
 }
@@ -238,7 +243,7 @@ function bind(){
 function render(){
   $('ttl').textContent=cfg.title;$('sub').textContent=cfg.subtitle;document.title=cfg.title;
   $('hb').innerHTML=me?(canPanel()?`<button class="g" id="tog">${open?'إخفاء اللوحة':'لوحة التحكم'}</button>`:'')+`<span class="sub" dir="ltr">${esc(me.username)}</span><button class="g" id="out">تسجيل خروج</button>`:'<button class="g" id="lg">تسجيل دخول</button>';
-  app.innerHTML=(authOpen&&!me?authForm():'')+(me&&!canPanel()?'<div class="card sec sub">حسابك ما عندوش صلاحيات لسه. اطلب من المالك يدّيك صلاحية.</div>':'')+(canPanel()&&open?admin():'')+pub();bind();
+  app.innerHTML=(authOpen&&!me?authForm():'')+(me&&!canPanel()?'<div class="card sec sub">اهلا بك في موقع  San George</div>':'')+(canPanel()&&open?admin():'')+pub();bind();
 }
 render();
 </script>
