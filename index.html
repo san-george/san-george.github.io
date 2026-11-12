@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>موقع البيانات</title>
+<title>San George</title>
+
+<link rel="icon" type="image/png" href="sangeorge.png">
+
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--tx:#161a22;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--bad:#dc2626}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mut:#8b93a3;--bd:#262b37;--ac:#4f8cff}}
@@ -330,7 +333,7 @@ function route(){
 function render(){
   $('ttl').textContent=cfg.title;$('sub').textContent=cfg.subtitle;document.title=cfg.title;
   $('hb').innerHTML=me?(canPanel()?`<button class="g" id="tog">${open?'إخفاء اللوحة':'لوحة التحكم'}</button>`:'')+`<span class="sub" dir="ltr">${esc(me.username)}</span><button class="g" id="out">تسجيل خروج</button>`:'<button class="g" id="lg">تسجيل دخول</button>';
-  theme();if(route())return;app.innerHTML=(authOpen&&!me?authForm():'')+(me&&!canPanel()?'<div class="card sec sub">حسابك ما عندوش صلاحيات لسه. اطلب من المالك يدّيك صلاحية.</div>':'')+(canPanel()&&open?admin():'')+pub();bind();
+  theme();if(route())return;app.innerHTML=(authOpen&&!me?authForm():'')+(me&&!canPanel()?'<div class="card sec sub">San George اهلا بك في موقع</div>':'')+(canPanel()&&open?admin():'')+pub();bind();
 }
 render();
 </script>
