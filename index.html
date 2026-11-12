@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>San George</title>
+<title>موقع البيانات</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--tx:#161a22;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--bad:#dc2626}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mut:#8b93a3;--bd:#262b37;--ac:#4f8cff}}
@@ -60,11 +60,17 @@ th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--bd);white-s
 </header>
 <div id="app"></div>
 </div>
+<script>
+window.__ok=false;
+addEventListener('error',function(e){var a=document.getElementById('app');if(a&&!a.innerHTML)a.innerHTML='<div class="card empty">حصل خطأ في تشغيل الموقع: '+String(e.message||'').replace(/</g,'&lt;')+'</div>'});
+setTimeout(function(){var a=document.getElementById('app');if(a&&!window.__ok)a.innerHTML='<div class="card empty">الموقع ما قدرش يشتغل. غالباً ملفات Firebase مش بتتحمّل (النت أو حظر الشبكة)، أو الملف على GitHub مش النسخة الأخيرة. جرّب شبكة تانية أو افتح الصفحة من متصفح تاني.</div>'},4000);
+</script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,collection,onSnapshot,setDoc,addDoc,updateDoc,deleteDoc,getDoc,getDocs,query,orderBy,startAt,endAt,limit,writeBatch,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+window.__ok=true;
 /* ===== الصق إعدادات Firebase بتاعتك هنا (من Project settings > Your apps) ===== */
 const firebaseConfig={
   apiKey:"AIzaSyCdsuzTehWVAE9qLVlFTWlvBnYjUj411ps",
@@ -91,7 +97,7 @@ if(firebaseConfig.apiKey.startsWith('YOUR')){
 }
 
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
-let cfg={title:'San George',subtitle:''',f:{}},items=[],me=null,unMe=null;
+let cfg={title:'موقع البيانات',subtitle:'آخر البيانات المسجلة',f:{}},items=[],me=null,unMe=null;
 let q='',editId=null,delId=null,open=false,authOpen=false,authMode='login',dirty=false,busy=false;
 let pages=[],pg=null,prev=false,sel=null,curImg='';
 const L=k=>(cfg.f&&cfg.f[k]&&cfg.f[k].l)||DF[k];
@@ -101,7 +107,7 @@ const isOwner=()=>me&&me.role==='owner';
 const err=m=>{const e=$('aer');if(e)e.textContent=m};
 const fail=e=>{console.error(e);alert('حصلت مشكلة: '+(e&&e.code?e.code:'خطأ'))};
 
-onSnapshot(doc(db,'site','config'),s=>{if(s.exists())cfg=Object.assign({title:'San George',subtitle:'',f:{}},s.data());soft()},()=>soft());
+onSnapshot(doc(db,'site','config'),s=>{if(s.exists())cfg=Object.assign({title:'موقع البيانات',subtitle:'',f:{}},s.data());soft()},()=>soft());
 onSnapshot(query(collection(db,'items'),orderBy('t','desc')),s=>{items=s.docs.map(d=>({id:d.id,...d.data()}));soft()},()=>soft());
 onSnapshot(collection(db,'pages'),s=>{pages=s.docs.map(d=>({id:d.id,...d.data()}));soft()},()=>soft());
 addEventListener('hashchange',()=>render());
@@ -324,7 +330,7 @@ function route(){
 function render(){
   $('ttl').textContent=cfg.title;$('sub').textContent=cfg.subtitle;document.title=cfg.title;
   $('hb').innerHTML=me?(canPanel()?`<button class="g" id="tog">${open?'إخفاء اللوحة':'لوحة التحكم'}</button>`:'')+`<span class="sub" dir="ltr">${esc(me.username)}</span><button class="g" id="out">تسجيل خروج</button>`:'<button class="g" id="lg">تسجيل دخول</button>';
-  theme();if(route())return;app.innerHTML=(authOpen&&!me?authForm():'')+(me&&!canPanel()?'<div class="card sec sub">San Georgeاهلا بك في موقع</div>':'')+(canPanel()&&open?admin():'')+pub();bind();
+  theme();if(route())return;app.innerHTML=(authOpen&&!me?authForm():'')+(me&&!canPanel()?'<div class="card sec sub">حسابك ما عندوش صلاحيات لسه. اطلب من المالك يدّيك صلاحية.</div>':'')+(canPanel()&&open?admin():'')+pub();bind();
 }
 render();
 </script>
